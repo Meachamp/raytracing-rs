@@ -2,6 +2,8 @@ mod vec3;
 use vec3::*;
 mod ray;
 use ray::*;
+mod hittable;
+mod sphere;
 
 use image::*;
 
