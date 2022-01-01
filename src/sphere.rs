@@ -1,10 +1,18 @@
 use crate::*;
-use vec3::*;
 use hittable::*;
 
 pub struct Sphere {
     center: Vec3,
     radius: f64
+}
+
+impl Sphere {
+    pub fn new(center: Vec3, radius: f64) -> Self {
+        Self {
+            center,
+            radius
+        }
+    }
 }
 
 impl Hittable for Sphere {

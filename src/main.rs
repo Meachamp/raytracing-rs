@@ -4,17 +4,18 @@ mod ray;
 use ray::*;
 mod hittable;
 mod sphere;
+mod hittable_list;
+use hittable_list::*;
+use hittable::*;
 
+use sphere::*;
+use std::rc::Rc;
 use image::*;
 
-fn ray_color(r: &Ray) -> Color3 {
-    let center = Vec3::from_f64(0.0, 0.0, -1.0);
-    let c = collides_with_sphere(&center, 0.5, r);
-
-    if c > 0.0 {
-        let norm = Vec3::unit(&(r.at(c) - center));
-
-        return 0.5*Color3::from_f64(norm.x() + 1.0, norm.y()+1.0, norm.z()+1.0);
+fn ray_color(r: &Ray, world: &HittableList) -> Color3 {
+    let mut rec = HitRecord::new();
+    if world.hit(*r, 0.0, f64::INFINITY, &mut rec) {
+        return 0.5 * (rec.normal + Vec3::from_f64(1.0, 1.0, 1.0));
     }
 
     let unit_dir = Vec3::unit(&r.direction());
@@ -26,25 +27,14 @@ fn write_color(col: &Color3) -> Rgb<u8> {
     Rgb([(col.x()*255.99) as u8, (col.y()*255.99) as u8, (col.z()*255.99) as u8])
 }
 
-fn collides_with_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
-    let a = Vec3::dot(&ray.direction(), &ray.direction());
-    let oc = ray.origin() - *center;
-    let b = 2.0*Vec3::dot(&ray.direction(), &oc);
-    let c = Vec3::dot(&oc, &oc) - radius*radius;
-
-    let disc = b*b - 4.0*a*c;
-
-    if disc < 0.0 {
-        return -1.0;
-    } else {
-        return (-b - disc.sqrt()) / (2.0*a);
-    }
-}
-
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
     const IMAGE_WIDTH : u32 = 400;
     const IMAGE_HEIGHT : u32 = (400 as f64 / ASPECT_RATIO) as u32;
+
+    let mut world = HittableList::new();
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0)));
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -66,7 +56,7 @@ fn main() {
             let dir = lower_left_corner+u*horizontal+v*vertical - origin;
             let r = Ray::new(&origin, &dir);
 
-            let col = ray_color(&r);
+            let col = ray_color(&r, &world);
             img.put_pixel(x, IMAGE_HEIGHT-1-y, write_color(&col));
         }
     }
