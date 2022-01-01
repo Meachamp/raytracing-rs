@@ -30,7 +30,7 @@ fn write_color(col: &Color3) -> Rgb<u8> {
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
     const IMAGE_WIDTH : u32 = 400;
-    const IMAGE_HEIGHT : u32 = (400 as f64 / ASPECT_RATIO) as u32;
+    const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
     let mut world = HittableList::new();
     world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5)));
