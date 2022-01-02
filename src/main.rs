@@ -16,6 +16,7 @@ use camera::*;
 use sphere::*;
 use std::rc::Rc;
 use image::*;
+use std::io::{Write, stdout};
 
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
     if depth <= 0 {
@@ -49,7 +50,7 @@ fn write_color(col: &Color3, samples_per_pixel: u32) -> Rgb<u8> {
 
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
-    const IMAGE_WIDTH : u32 = 400;
+    const IMAGE_WIDTH : u32 = 1920;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
     let samples_per_pixel = 100;
     let max_ray_depth = 50;
@@ -63,7 +64,9 @@ fn main() {
     let cam = Camera::new();
 
     for y in 0..IMAGE_HEIGHT {
-        println!("Scanlines remaining: {}", IMAGE_HEIGHT-y);
+        print!("Scanlines remaining: {: <8}\r", IMAGE_HEIGHT-y);
+        let _ = stdout().flush();
+
         for x in 0..IMAGE_WIDTH {
             let mut pixel_col = Vec3::new();
 
@@ -86,6 +89,8 @@ fn main() {
         }
     }
 
+    println!("");
+    println!("Writing image...");
     let _ = img.save("test.png");
     println!("Done.");
 }
