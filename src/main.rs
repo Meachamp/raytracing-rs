@@ -69,8 +69,8 @@ fn main() {
 
     let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
     let mat_center = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.7, 0.3, 0.3)));
-    let mat_left = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.8, 0.8)));
-    let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.6, 0.2)));
+    let mat_left = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.8, 0.8), 0.3));
+    let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.6, 0.2), 1.0));
 
     let mut world = HittableList::new();
     world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5, mat_center)));
