@@ -1,8 +1,10 @@
-use rand::{thread_rng, Rng};
-use rand::distributions::OpenClosed01;
+use rand::{thread_rng, Rng, distributions::Uniform};
 
 pub fn random_double() -> f64 {
-    let val: f64 = thread_rng().sample(OpenClosed01);
+    thread_rng().gen()
+}
 
-    1.0 - val
+pub fn random_range(min: f64, max: f64) -> f64 {
+    let between = Uniform::new(min, max);
+    thread_rng().sample(between)
 }
