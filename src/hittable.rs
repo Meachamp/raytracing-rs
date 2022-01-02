@@ -1,11 +1,14 @@
 use crate::*;
+use material::Material;
+use std::rc::Rc;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f64,
-    pub front_face: bool
+    pub front_face: bool,
+    pub material: Option<Rc<dyn Material>>
 }
 
 impl HitRecord {
@@ -14,7 +17,8 @@ impl HitRecord {
             p: Vec3::new(),
             normal: Vec3::new(),
             t: 0.0,
-            front_face: true
+            front_face: true,
+            material: None
         }
     }
 }

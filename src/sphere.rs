@@ -1,16 +1,19 @@
 use crate::*;
 use hittable::*;
+use material::Material;
 
 pub struct Sphere {
     center: Vec3,
-    radius: f64
+    radius: f64,
+    material: Rc<dyn Material>
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
+    pub fn new(center: Vec3, radius: f64, mat: Rc<dyn Material>) -> Self {
         Self {
             center,
-            radius
+            radius,
+            material: mat
         }
     }
 }
@@ -40,6 +43,7 @@ impl Hittable for Sphere {
 
         hit_record.t = root;
         hit_record.p = ray.at(root);
+        hit_record.material = Some(self.material.clone());
 
         let outward_normal = (hit_record.p - self.center) / self.radius;
         hit_record.set_face_normal(&ray, &outward_normal);

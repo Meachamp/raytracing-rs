@@ -5,6 +5,9 @@ mod hittable_list;
 mod camera;
 mod util;
 mod ray;
+mod material;
+mod lambertian;
+mod metal;
 
 use vec3::*;
 use ray::*;
@@ -25,9 +28,18 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
 
     let mut rec = HitRecord::new();
     if world.hit(*r, 0.001, f64::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + Vec3::random_unit_vector();
+        //let target = rec.p + rec.normal + Vec3::random_unit_vector();
+        //let target = rec.p + Vec3::random_in_hemisphere(&rec.normal);
 
-        return 0.5 * ray_color(&Ray::new(&rec.p, &(target-rec.p)), world, depth-1);
+        let mut attenuation = Vec3::new();
+        let mut scattered = Ray::new(&Vec3::new(), &Vec3::new());
+
+        let mat = rec.material.clone().unwrap();
+        if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&scattered, world, depth-1);
+        }
+
+        return Vec3::from_f64(0.0, 0.0, 0.0);
     }
 
     let unit_dir = Vec3::unit(&r.direction());
@@ -55,9 +67,16 @@ fn main() {
     let samples_per_pixel = 100;
     let max_ray_depth = 50;
 
+    let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
+    let mat_center = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.7, 0.3, 0.3)));
+    let mat_left = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.8, 0.8)));
+    let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.6, 0.2)));
+
     let mut world = HittableList::new();
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5, mat_center)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0, mat_ground)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), 0.5, mat_left)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(1.0, 0.0, -1.0), 0.5, mat_right)));
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 

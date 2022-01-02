@@ -28,7 +28,7 @@ impl Hittable for HittableList {
             if obj.hit(r, min, closest, &mut temp) {
                 hit = true;
                 closest = temp.t;
-                *hit_record = temp;
+                *hit_record = temp.clone();
             }
         }
 
