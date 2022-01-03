@@ -24,3 +24,12 @@ pub fn refract(uv: &Vec3, n: &Vec3, k: f64) -> Vec3 {
 pub fn deg_to_rad(deg: f64) -> f64 {
     deg / 180.0 * PI
 }
+
+pub fn random_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::from_f64(random_range(-1.0, 1.0), random_range(-1.0, 1.0), 0.0);
+        if p.length_squared() <= 1.0 {
+            return p;
+        }
+    }
+}

@@ -82,7 +82,16 @@ fn main() {
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    let cam = Camera::new(16.0/9.0, 120.0);
+    let lookfrom = Vec3::from_f64(-2.0, 2.0, 1.0);
+    let lookat = Vec3::from_f64(0.0, 0.0, -1.0);
+    let dist_to_focus = (lookfrom-lookat).length();
+    let cam = Camera::new(lookfrom,
+                            lookat,
+                            Vec3::from_f64(0.0, 1.0, 0.0),
+                            16.0/9.0,
+                            120.0,
+                            2.0,
+                            dist_to_focus);
 
     for y in 0..IMAGE_HEIGHT {
         print!("Scanlines remaining: {: <8}\r", IMAGE_HEIGHT-y);
