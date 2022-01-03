@@ -1,5 +1,6 @@
 use rand::{thread_rng, Rng, distributions::Uniform};
 use crate::vec3::Vec3;
+use std::f64::consts::PI;
 
 pub fn random_double() -> f64 {
     thread_rng().gen()
@@ -18,4 +19,8 @@ pub fn refract(uv: &Vec3, n: &Vec3, k: f64) -> Vec3 {
     let r_para = -((1.0 - r_perp.length_squared()).abs().sqrt()) * (*n);
 
     r_perp + r_para
+}
+
+pub fn deg_to_rad(deg: f64) -> f64 {
+    deg / 180.0 * PI
 }

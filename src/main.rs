@@ -82,7 +82,7 @@ fn main() {
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    let cam = Camera::new();
+    let cam = Camera::new(16.0/9.0, 120.0);
 
     for y in 0..IMAGE_HEIGHT {
         print!("Scanlines remaining: {: <8}\r", IMAGE_HEIGHT-y);
