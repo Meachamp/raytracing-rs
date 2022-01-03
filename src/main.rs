@@ -65,7 +65,7 @@ fn random_world() -> HittableList {
     let mut world = HittableList::new();
 
     let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.5, 0.5, 0.5)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0, mat_ground.clone())));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -1000.0, 0.0), 1000.0, mat_ground.clone())));
 
     for i in -11..11 {
         for j in -11..11 {
