@@ -61,6 +61,50 @@ fn write_color(col: &Color3, samples_per_pixel: u32) -> Rgb<u8> {
     )
 }
 
+fn random_world() -> HittableList {
+    let mut world = HittableList::new();
+
+    let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.5, 0.5, 0.5)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0, mat_ground.clone())));
+
+    for i in -11..11 {
+        for j in -11..11 {
+            let mat_type = util::random_double();
+
+            let center = Vec3::from_f64((i as f64) + 0.9*util::random_double(),
+                                        0.2,
+                                        (j as f64) + 0.9*util::random_double());
+
+            if (center - Vec3::from_f64(4.0, 0.2, 0.0)).length() > 0.9 {
+                if mat_type < 0.8 {
+                    let albedo = Vec3::random_unit_vector() * Vec3::random_unit_vector();
+                    let mat = Rc::new(lambertian::Lambertian::new(albedo));
+                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+
+                } else if mat_type < 0.95 {
+                    let albedo = Vec3::random(0.5, 1.0);
+                    let fuzz = util::random_range(0.0, 0.77);
+                    let mat = Rc::new(metal::Metal::new(albedo, fuzz));
+                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+                } else {
+                    let mat = Rc::new(dielectric::Dieletric::new(1.5));
+                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+                }
+            }
+        }
+    }
+
+    let mat1 = Rc::new(dielectric::Dieletric::new(1.5));
+    let mat2 = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.4, 0.2, 0.1)));
+    let mat3 = Rc::new(metal::Metal::new(Vec3::from_f64(0.7, 0.6, 0.5), 0.0));
+
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 1.0, 0.0), 1.0, mat1)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(-4.0, 1.0, 0.0), 1.0, mat2)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(4.0, 1.0, 0.0), 1.0, mat3)));
+
+    world
+}
+
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
     const IMAGE_WIDTH : u32 = 1920;
@@ -68,7 +112,7 @@ fn main() {
     let samples_per_pixel = 100;
     let max_ray_depth = 50;
 
-    let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
+    /*let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
     let mat_center = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.7, 0.3, 0.3)));
     let mat_left = Rc::new(dielectric::Dieletric::new(1.5));
     let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8,0.6,0.2), 0.0));
@@ -78,19 +122,21 @@ fn main() {
     world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0, mat_ground)));
     world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), 0.5, mat_left.clone())));
     world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), -0.4, mat_left)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(1.0, 0.0, -1.0), 0.5, mat_right)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(1.0, 0.0, -1.0), 0.5, mat_right)));*/
+
+    let world = random_world();
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    let lookfrom = Vec3::from_f64(-2.0, 2.0, 1.0);
-    let lookat = Vec3::from_f64(0.0, 0.0, -1.0);
-    let dist_to_focus = (lookfrom-lookat).length();
+    let lookfrom = Vec3::from_f64(13.0, 2.0, 3.0);
+    let lookat = Vec3::from_f64(0.0, 0.0, 0.0);
+    let dist_to_focus = 10.0;
     let cam = Camera::new(lookfrom,
                             lookat,
                             Vec3::from_f64(0.0, 1.0, 0.0),
-                            16.0/9.0,
-                            120.0,
-                            2.0,
+                            ASPECT_RATIO,
+                            20.0,
+                            0.1,
                             dist_to_focus);
 
     for y in 0..IMAGE_HEIGHT {
