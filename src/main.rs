@@ -77,7 +77,7 @@ fn random_world() -> HittableList {
 
             if (center - Vec3::from_f64(4.0, 0.2, 0.0)).length() > 0.9 {
                 if mat_type < 0.8 {
-                    let albedo = Vec3::random_unit_vector() * Vec3::random_unit_vector();
+                    let albedo = Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0);
                     let mat = Rc::new(lambertian::Lambertian::new(albedo));
                     world.add(Rc::new(Sphere::new(center, 0.2, mat)));
 
