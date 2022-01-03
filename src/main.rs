@@ -8,6 +8,7 @@ mod ray;
 mod material;
 mod lambertian;
 mod metal;
+mod dielectric;
 
 use vec3::*;
 use ray::*;
@@ -69,13 +70,14 @@ fn main() {
 
     let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
     let mat_center = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.7, 0.3, 0.3)));
-    let mat_left = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.8, 0.8), 0.3));
-    let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8, 0.6, 0.2), 1.0));
+    let mat_left = Rc::new(dielectric::Dieletric::new(1.5));
+    let mat_right = Rc::new(metal::Metal::new(Vec3::from_f64(0.8,0.6,0.2), 0.0));
 
     let mut world = HittableList::new();
     world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 0.0, -1.0), 0.5, mat_center)));
     world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -100.5, -1.0), 100.0, mat_ground)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), 0.5, mat_left)));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), 0.5, mat_left.clone())));
+    world.add(Rc::new(Sphere::new(Vec3::from_f64(-1.0, 0.0, -1.0), -0.4, mat_left)));
     world.add(Rc::new(Sphere::new(Vec3::from_f64(1.0, 0.0, -1.0), 0.5, mat_right)));
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
