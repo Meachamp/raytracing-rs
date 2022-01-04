@@ -33,43 +33,47 @@ impl Triangle {
 impl Hittable for Triangle {
     fn hit(&self, ray: Ray, min: f64, max: f64, hit_record: &mut HitRecord) -> bool {
         let dir = ray.direction();
+        let n = self.n;
 
-        let n_dot_dir = Vec3::dot(&self.n, &dir);
+        let n_dot_dir = Vec3::dot(&n, &dir);
         if n_dot_dir.abs() < 1e-8 {
             return false; //Ray is parallel to the triangle
         }
 
-        let d = Vec3::dot(&self.v0, &self.n);
+        //if n_dot_dir < 0.0 {
+        //    return false;
+        //}
+
         let origin = ray.origin();
 
-        let t = -(Vec3::dot(&self.n, &origin) + d) / n_dot_dir;
+        let t = Vec3::dot(&(self.v0-origin), &n) / Vec3::dot(&n, &dir);
 
         if t < min || t > max {
             return false;
         }
-
+        //println!("{}", t);
         let p = ray.at(t);
 
         let e10 = self.v1 - self.v0;
         let ep0 = p - self.v0;
         let c = Vec3::cross(&e10, &ep0);
-        let a = Vec3::dot(&c, &self.n);
+        let a = Vec3::dot(&c, &n);
         if a < 0.0 { return false; }
 
         let e20 = self.v2 - self.v0;
         let c = Vec3::cross(&ep0, &e20);
-        let a = Vec3::dot(&c, &self.n);
+        let a = Vec3::dot(&c, &n);
         if a < 0.0 { return false; }
 
         let e21 = self.v2 - self.v1;
         let ep1 = p - self.v1;
         let c = Vec3::cross(&e21, &ep1);
-        let a = Vec3::dot(&c, &self.n);
+        let a = Vec3::dot(&c, &n);
         if a < 0.0 { return false; }
 
         hit_record.p = p;
         hit_record.t = t;
-        hit_record.set_face_normal(&ray, &self.n);
+        hit_record.set_face_normal(&ray, &n);
         hit_record.material = self.material.clone();
 
         return true;
