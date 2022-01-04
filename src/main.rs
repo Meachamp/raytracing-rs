@@ -78,7 +78,9 @@ fn random_world() -> HittableList {
                                         0.2,
                                         (j as f64) + 0.9*util::random_double());
 
-            if (center - Vec3::from_f64(4.0, 0.2, 0.0)).length() > 0.9 && (center - Vec3::from_f64(-3.07, 0.0, 4.3)).length() > 2.0 {
+            if (center - Vec3::from_f64(4.0, 0.2, 0.0)).length() > 0.9 && (center - Vec3::from_f64(-4.07, 0.0, 2.8)).length() > 1.5
+                && (center - Vec3::from_f64(-4.0, 1.0, 0.0)).length() > 1.2
+            {
                 if mat_type < 0.8 {
                     let albedo = Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0);
                     let mat = Arc::new(lambertian::Lambertian::new(albedo));
@@ -112,10 +114,10 @@ fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
     const IMAGE_WIDTH : u32 = 800;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-    let samples_per_pixel = 15;
+    let samples_per_pixel = 50;
     let max_ray_depth = 45;
 
-    let metal_mat = Arc::new(metal::Metal::new(Vec3::from_f64(0.8,0.6,0.2), 0.0));
+    let metal_mat = Arc::new(metal::Metal::new(Vec3::from_f64(59.0/255.0,102.0/255.0,57.0/255.0), 0.0));
 
     let mut world = random_world();
     //let mut world = HittableList::new();
@@ -131,14 +133,14 @@ fn main() {
 
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    let lookfrom = Vec3::from_f64(-10.0, 3.0, 3.0);
+    let lookfrom = Vec3::from_f64(-13.0, 3.0, 3.0);
     let lookat = Vec3::from_f64(0.0, 0.0, 0.0);
     let dist_to_focus = 10.0;
     let cam = Camera::new(lookfrom,
                             lookat,
                             Vec3::from_f64(0.0, 1.0, 0.0),
                             ASPECT_RATIO,
-                            40.0,
+                            20.0,
                             0.1,
                             dist_to_focus);
 
