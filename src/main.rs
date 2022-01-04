@@ -9,6 +9,7 @@ mod material;
 mod lambertian;
 mod metal;
 mod dielectric;
+mod triangle;
 
 use vec3::*;
 use ray::*;
@@ -18,10 +19,10 @@ use hittable::*;
 use camera::*;
 
 use sphere::*;
-use std::rc::Rc;
+use std::sync::Arc;
 use image::*;
-use std::io::{Write, stdout};
 use std::time::{Instant};
+use rayon::prelude::*;
 
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
     if depth <= 0 {
@@ -36,7 +37,7 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
         let mut attenuation = Vec3::new();
         let mut scattered = Ray::new(&Vec3::new(), &Vec3::new());
 
-        let mat = rec.material.clone().unwrap();
+        let mat = rec.material.clone();
         if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
             return attenuation * ray_color(&scattered, world, depth-1);
         }
@@ -65,8 +66,8 @@ fn write_color(col: &Color3, samples_per_pixel: u32) -> Rgb<u8> {
 fn random_world() -> HittableList {
     let mut world = HittableList::new();
 
-    let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.5, 0.5, 0.5)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, -1000.0, 0.0), 1000.0, mat_ground.clone())));
+    let mat_ground = Arc::new(lambertian::Lambertian::new(Vec3::from_f64(0.5, 0.5, 0.5)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(0.0, -1000.0, 0.0), 1000.0, mat_ground.clone())));
 
     for i in -11..11 {
         for j in -11..11 {
@@ -79,36 +80,36 @@ fn random_world() -> HittableList {
             if (center - Vec3::from_f64(4.0, 0.2, 0.0)).length() > 0.9 {
                 if mat_type < 0.8 {
                     let albedo = Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0);
-                    let mat = Rc::new(lambertian::Lambertian::new(albedo));
-                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+                    let mat = Arc::new(lambertian::Lambertian::new(albedo));
+                    world.add(Arc::new(Sphere::new(center, 0.2, mat)));
 
                 } else if mat_type < 0.95 {
                     let albedo = Vec3::random(0.5, 1.0);
                     let fuzz = util::random_range(0.0, 0.77);
-                    let mat = Rc::new(metal::Metal::new(albedo, fuzz));
-                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+                    let mat = Arc::new(metal::Metal::new(albedo, fuzz));
+                    world.add(Arc::new(Sphere::new(center, 0.2, mat)));
                 } else {
-                    let mat = Rc::new(dielectric::Dieletric::new(1.5));
-                    world.add(Rc::new(Sphere::new(center, 0.2, mat)));
+                    let mat = Arc::new(dielectric::Dieletric::new(1.5));
+                    world.add(Arc::new(Sphere::new(center, 0.2, mat)));
                 }
             }
         }
     }
 
-    let mat1 = Rc::new(dielectric::Dieletric::new(1.5));
-    let mat2 = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.4, 0.2, 0.1)));
-    let mat3 = Rc::new(metal::Metal::new(Vec3::from_f64(0.7, 0.6, 0.5), 0.0));
+    let mat1 = Arc::new(dielectric::Dieletric::new(1.5));
+    let mat2 = Arc::new(lambertian::Lambertian::new(Vec3::from_f64(0.4, 0.2, 0.1)));
+    let mat3 = Arc::new(metal::Metal::new(Vec3::from_f64(0.7, 0.6, 0.5), 0.0));
 
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(0.0, 1.0, 0.0), 1.0, mat1)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(-4.0, 1.0, 0.0), 1.0, mat2)));
-    world.add(Rc::new(Sphere::new(Vec3::from_f64(4.0, 1.0, 0.0), 1.0, mat3)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(0.0, 1.0, 0.0), 1.0, mat1)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(-4.0, 1.0, 0.0), 1.0, mat2)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(4.0, 1.0, 0.0), 1.0, mat3)));
 
     world
 }
 
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
-    const IMAGE_WIDTH : u32 = 400;
+    const IMAGE_WIDTH : u32 = 1920;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
     let samples_per_pixel = 10;
     let max_ray_depth = 15;
@@ -141,34 +142,42 @@ fn main() {
                             dist_to_focus);
 
     let start = Instant::now();
-    for y in 0..IMAGE_HEIGHT {
-        print!("Scanlines remaining: {: <8}\r", IMAGE_HEIGHT-y);
-        let _ = stdout().flush();
+    let mut cells = vec![Vec3::new(); (IMAGE_HEIGHT * IMAGE_WIDTH) as usize];
 
-        for x in 0..IMAGE_WIDTH {
-            let mut pixel_col = Vec3::new();
+    cells.par_iter_mut().enumerate().for_each(|(i, col_out)| {
+        let mut pixel_col = Vec3::new();
+        let x = (i as u32) % IMAGE_WIDTH;
+        let y = (i as u32) / IMAGE_WIDTH;
 
-            for _ in 0..samples_per_pixel {
-                let x = x as f64;
-                let y = y as f64;
+        let x = x as f64;
+        let y = y as f64;
 
-                let dx = util::random_double();//*2.0 - 1.0;
-                let dy = util::random_double();//*2.0 - 1.0;
+        for _ in 0..samples_per_pixel {
 
-                let u = (x + dx) / (IMAGE_WIDTH-1) as f64;
-                let v = (y + dy) / (IMAGE_HEIGHT-1) as f64;
+            let dx = util::random_double();//*2.0 - 1.0;
+            let dy = util::random_double();//*2.0 - 1.0;
 
-                let r = cam.get_ray(u, v);
-                let col = ray_color(&r, &world, max_ray_depth);
-                pixel_col += col;
-            }
+            let u = (x + dx) / (IMAGE_WIDTH-1) as f64;
+            let v = (y + dy) / (IMAGE_HEIGHT-1) as f64;
 
-            img.put_pixel(x, IMAGE_HEIGHT-1-y, write_color(&pixel_col, samples_per_pixel));
+            let r = cam.get_ray(u, v);
+            let col = ray_color(&r, &world, max_ray_depth);
+            pixel_col += col;
         }
-    }
+
+        *col_out = pixel_col;
+    });
 
     println!("");
     println!("Writing image...");
+
+    for i in 0..(IMAGE_HEIGHT*IMAGE_WIDTH) {
+        let x = (i as u32) % IMAGE_WIDTH;
+        let y = (i as u32) / IMAGE_WIDTH;
+
+        img.put_pixel(x, IMAGE_HEIGHT-1-y, write_color(&cells[i as usize], samples_per_pixel));
+    }
+
     let _ = img.save("test.png");
     println!("Done.");
 

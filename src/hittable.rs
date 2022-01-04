@@ -1,6 +1,6 @@
 use crate::*;
 use material::Material;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -8,7 +8,7 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
-    pub material: Option<Rc<dyn Material>>
+    pub material: Arc<dyn Material>
 }
 
 impl HitRecord {
@@ -18,7 +18,7 @@ impl HitRecord {
             normal: Vec3::new(),
             t: 0.0,
             front_face: true,
-            material: None
+            material: Arc::new(dielectric::Dieletric::new(1.0))
         }
     }
 }

@@ -1,9 +1,9 @@
-use std::rc::Rc;
+use std::sync::Arc;
 use crate::*;
 use hittable::*;
 
 pub struct HittableList {
-    list: Vec<Rc<dyn Hittable>>
+    list: Vec<Arc<dyn Hittable>>
 }
 
 impl HittableList {
@@ -13,7 +13,7 @@ impl HittableList {
         }
     }
 
-    pub fn add(&mut self, h: Rc<dyn Hittable>) {
+    pub fn add(&mut self, h: Arc<dyn Hittable>) {
         self.list.push(h);
     }
 }
@@ -35,3 +35,6 @@ impl Hittable for HittableList {
         hit
     }
 }
+
+unsafe impl Send for HittableList {}
+unsafe impl Sync for HittableList {}
