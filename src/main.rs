@@ -21,6 +21,7 @@ use sphere::*;
 use std::rc::Rc;
 use image::*;
 use std::io::{Write, stdout};
+use std::time::{Instant};
 
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
     if depth <= 0 {
@@ -107,10 +108,10 @@ fn random_world() -> HittableList {
 
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
-    const IMAGE_WIDTH : u32 = 1920;
+    const IMAGE_WIDTH : u32 = 400;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-    let samples_per_pixel = 100;
-    let max_ray_depth = 50;
+    let samples_per_pixel = 10;
+    let max_ray_depth = 15;
 
     /*let mat_ground = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.8, 0.8, 0.0)));
     let mat_center = Rc::new(lambertian::Lambertian::new(Vec3::from_f64(0.7, 0.3, 0.3)));
@@ -139,6 +140,7 @@ fn main() {
                             0.1,
                             dist_to_focus);
 
+    let start = Instant::now();
     for y in 0..IMAGE_HEIGHT {
         print!("Scanlines remaining: {: <8}\r", IMAGE_HEIGHT-y);
         let _ = stdout().flush();
@@ -169,4 +171,7 @@ fn main() {
     println!("Writing image...");
     let _ = img.save("test.png");
     println!("Done.");
+
+    let end = Instant::now();
+    println!("Render took {} secs", (end-start).as_secs());
 }
