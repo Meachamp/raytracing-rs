@@ -45,12 +45,12 @@ impl Model {
                 let v0 = vertices[v_chunk[0] as usize];
                 let v1 = vertices[v_chunk[1] as usize];
                 let v2 = vertices[v_chunk[2] as usize];
-                println!("{} {} {}", v0, v1, v2);
+                //println!("{} {} {}", v0, v1, v2);
                 tris.push(Triangle::new(v0, v1, v2, mat.clone()));
             }
         }
 
-
+        println!("Loaded model {}, {} tris", path, tris.len());
         Self {
             tris
         }

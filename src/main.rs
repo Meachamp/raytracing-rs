@@ -24,7 +24,6 @@ use std::sync::Arc;
 use image::*;
 use std::time::{Instant};
 use rayon::prelude::*;
-use std::sync::RwLock;
 use std::thread::{sleep, spawn};
 use std::time::Duration;
 use std::sync::atomic::{Ordering, AtomicU64};
@@ -160,7 +159,7 @@ fn main() {
             let pix = pix as f64 / (IMAGE_HEIGHT * IMAGE_WIDTH) as f64;
             let pix = pix * 100.0;
             let dur = Instant::now() - start;
-            println!("Current progress: {:.2}%, {} seconds elapsed", dur.as_secs(), pix);
+            println!("Current progress: {:.2}%, {:.2} seconds elapsed", pix, dur.as_secs());
             let _ = sleep(Duration::from_secs(1));
         }
     });
