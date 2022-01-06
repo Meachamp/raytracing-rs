@@ -117,10 +117,10 @@ static PROGRESS: AtomicU64 = AtomicU64::new(0);
 
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
-    const IMAGE_WIDTH : u32 = 400;
+    const IMAGE_WIDTH : u32 = 1920;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
     let samples_per_pixel = 50;
-    let max_ray_depth = 5;
+    let max_ray_depth = 50;
 
     let metal_mat = Arc::new(metal::Metal::new(Vec3::from_f64(59.0/255.0,102.0/255.0,57.0/255.0), 0.0));
 
