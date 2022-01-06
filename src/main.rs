@@ -24,6 +24,10 @@ use std::sync::Arc;
 use image::*;
 use std::time::{Instant};
 use rayon::prelude::*;
+use std::sync::RwLock;
+use std::thread::{sleep, spawn};
+use std::time::Duration;
+use std::sync::atomic::{Ordering, AtomicU64};
 
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
     if depth <= 0 {
@@ -104,18 +108,20 @@ fn random_world() -> HittableList {
     let mat3 = Arc::new(metal::Metal::new(Vec3::from_f64(0.7, 0.6, 0.5), 0.0));
 
     world.add(Arc::new(Sphere::new(Vec3::from_f64(0.0, 1.0, 0.0), 1.0, mat1)));
-    world.add(Arc::new(Sphere::new(Vec3::from_f64(-4.0, 1.0, 0.0), 1.0, mat2)));
-    world.add(Arc::new(Sphere::new(Vec3::from_f64(4.0, 1.0, 0.0), 1.0, mat3)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(-4.0, 1.0, 0.0), 1.0, mat3)));
+    world.add(Arc::new(Sphere::new(Vec3::from_f64(4.0, 1.0, 0.0), 1.0, mat2)));
 
     world
 }
 
+static PROGRESS: AtomicU64 = AtomicU64::new(0);
+
 fn main() {
     const ASPECT_RATIO : f64 = 16.0/9.0;
-    const IMAGE_WIDTH : u32 = 800;
+    const IMAGE_WIDTH : u32 = 400;
     const IMAGE_HEIGHT : u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
     let samples_per_pixel = 50;
-    let max_ray_depth = 45;
+    let max_ray_depth = 5;
 
     let metal_mat = Arc::new(metal::Metal::new(Vec3::from_f64(59.0/255.0,102.0/255.0,57.0/255.0), 0.0));
 
@@ -147,6 +153,18 @@ fn main() {
     let start = Instant::now();
     let mut cells = vec![Vec3::new(); (IMAGE_HEIGHT * IMAGE_WIDTH) as usize];
 
+    spawn(move || {
+        let start = Instant::now();
+        loop {
+            let pix = PROGRESS.load(Ordering::Relaxed);
+            let pix = pix as f64 / (IMAGE_HEIGHT * IMAGE_WIDTH) as f64;
+            let pix = pix * 100.0;
+            let dur = Instant::now() - start;
+            println!("Current progress: {:.2}%, {} seconds elapsed", dur.as_secs(), pix);
+            let _ = sleep(Duration::from_secs(1));
+        }
+    });
+
     cells.par_iter_mut().enumerate().for_each(|(i, col_out)| {
         let mut pixel_col = Vec3::new();
         let x = (i as u32) % IMAGE_WIDTH;
@@ -169,6 +187,7 @@ fn main() {
         }
 
         *col_out = pixel_col;
+        PROGRESS.fetch_add(1, Ordering::Relaxed);
     });
 
     println!("");
