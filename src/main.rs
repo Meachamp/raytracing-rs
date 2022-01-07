@@ -11,6 +11,8 @@ mod metal;
 mod dielectric;
 mod triangle;
 mod model;
+mod aabb;
+mod bvh;
 
 use vec3::*;
 use ray::*;
@@ -28,7 +30,7 @@ use std::thread::{sleep, spawn};
 use std::time::Duration;
 use std::sync::atomic::{Ordering, AtomicU64};
 
-fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color3 {
+fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color3 {
     if depth <= 0 {
         return Vec3::from_f64(0.0, 0.0, 0.0);
     }
@@ -136,6 +138,8 @@ fn main() {
     let m = model::Model::new("cube2.obj", metal_mat.clone());
     world.add(Arc::new(m));
 
+    let bv = bvh::BVH::new(world);
+
     let mut img = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
     let lookfrom = Vec3::from_f64(-13.0, 3.0, 3.0);
@@ -181,7 +185,7 @@ fn main() {
             let v = (y + dy) / (IMAGE_HEIGHT-1) as f64;
 
             let r = cam.get_ray(u, v);
-            let col = ray_color(&r, &world, max_ray_depth);
+            let col = ray_color(&r, &bv, max_ray_depth);
             pixel_col += col;
         }
 
