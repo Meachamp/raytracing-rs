@@ -6,6 +6,11 @@ pub fn random_double() -> f64 {
     thread_rng().gen()
 }
 
+pub fn random_int(min: i32, max: i32) -> i32 {
+    let between = Uniform::new(min, max);
+    thread_rng().sample(between)
+}
+
 pub fn random_range(min: f64, max: f64) -> f64 {
     let between = Uniform::new(min, max);
     thread_rng().sample(between)
