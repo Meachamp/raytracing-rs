@@ -5,9 +5,11 @@ use crate::ray::Ray;
 use crate::material::Material;
 use std::sync::Arc;
 use crate::hittable::*;
+use crate::aabb::*;
 
 pub struct Model {
-    tris: Vec<Triangle>
+    tris: Vec<Triangle>,
+    bb: Option<AABB>
 }
 
 impl Model {
@@ -50,9 +52,12 @@ impl Model {
             }
         }
 
+        let bb = tris.iter().map(|obj| obj.bounding_box()).reduce(AABB::union).unwrap();
+
         println!("Loaded model {}, {} tris", path, tris.len());
         Self {
-            tris
+            tris,
+            bb
         }
     }
 }
@@ -72,5 +77,9 @@ impl Hittable for Model {
         }
 
         hit
+    }
+
+    fn bounding_box(&self) -> Option<AABB> {
+        self.bb.clone()
     }
 }

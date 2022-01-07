@@ -2,6 +2,7 @@ use crate::*;
 use hittable::*;
 use material::Material;
 use std::sync::Arc;
+use aabb::*;
 
 pub struct Sphere {
     center: Vec3,
@@ -50,5 +51,10 @@ impl Hittable for Sphere {
         hit_record.set_face_normal(&ray, &outward_normal);
 
         return true;
+    }
+
+    fn bounding_box(&self) -> Option<AABB> {
+        Some(AABB::new(self.center - Vec3::from_f64(self.radius, self.radius, self.radius),
+                    self.center + Vec3::from_f64(self.radius, self.radius, self.radius)))
     }
 }

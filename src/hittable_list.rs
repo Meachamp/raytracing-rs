@@ -1,9 +1,10 @@
 use std::sync::Arc;
 use crate::*;
 use hittable::*;
+use aabb::*;
 
 pub struct HittableList {
-    list: Vec<Arc<dyn Hittable>>
+    pub list: Vec<Arc<dyn Hittable>>
 }
 
 impl HittableList {
@@ -33,6 +34,14 @@ impl Hittable for HittableList {
         }
 
         hit
+    }
+
+    fn bounding_box(&self) -> Option<AABB> {
+        if self.list.len() == 0 {
+            return None;
+        }
+
+        self.list.iter().map(|obj| obj.bounding_box()).reduce(AABB::union).unwrap()
     }
 }
 

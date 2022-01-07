@@ -1,6 +1,7 @@
 use crate::*;
 use material::Material;
 use std::sync::Arc;
+use aabb::*;
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -36,4 +37,5 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: Ray, min: f64, max: f64, hit_record: &mut HitRecord) -> bool;
+    fn bounding_box(&self) -> Option<AABB>;
 }

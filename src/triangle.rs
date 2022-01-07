@@ -3,6 +3,7 @@ use crate::ray::*;
 use crate::hittable::*;
 use crate::material::Material;
 use std::sync::Arc;
+use crate::aabb::*;
 
 pub struct Triangle {
     v0: Vec3,
@@ -77,5 +78,18 @@ impl Hittable for Triangle {
         hit_record.material = self.material.clone();
 
         return true;
+    }
+
+    fn bounding_box(&self) -> Option<AABB> {
+        let pts = vec![self.v0, self.v1, self.v2];
+        let x_min = pts.iter().map(|v| v[0]).reduce(f64::min).unwrap();
+        let y_min = pts.iter().map(|v| v[1]).reduce(f64::min).unwrap();
+        let z_min = pts.iter().map(|v| v[2]).reduce(f64::min).unwrap();
+
+        let x_max = pts.iter().map(|v| v[0]).reduce(f64::max).unwrap();
+        let y_max = pts.iter().map(|v| v[1]).reduce(f64::max).unwrap();
+        let z_max = pts.iter().map(|v| v[2]).reduce(f64::max).unwrap();
+
+        Some(AABB::new(Vec3::from_f64(x_min, y_min, z_min), Vec3::from_f64(x_max, y_max, z_max)))
     }
 }
